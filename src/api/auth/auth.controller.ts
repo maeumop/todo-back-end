@@ -23,6 +23,7 @@ export class AuthController {
 
   @Post('register')
   @PublicApi()
+  @UseInterceptors(ClassSerializerInterceptor)
   @ApiOperation({
     summary: '회원 가입 (토큰 발급)',
   })

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { OrderBy } from 'src/common/enum.constant';
 import { TodoPatchDto, TodoPostDto } from 'src/dto/todo/post-register.dto';
 import { TodoGetListDto } from 'src/dto/todo/todo-paginate.dto';
 import { TodoModel } from 'src/entity/todo.entity';
@@ -9,7 +10,14 @@ import {
   TodoItemModel,
   TodoListModel,
 } from 'src/model/todo/todo.response.model';
-import { LessThan, Repository } from 'typeorm';
+import {
+  FindManyOptions,
+  FindOptionsOrder,
+  FindOptionsWhere,
+  LessThan,
+  Like,
+  Repository,
+} from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -45,13 +53,38 @@ export class TodoService {
    * @returns
    */
   async getTodoList(dto: TodoGetListDto, idx: number) {
-    const options = {
-      where: null,
-      order: {
-        createAt: dto.orderBy,
+    console.log(idx);
+    const order: FindOptionsOrder<TodoModel> = {
+      createAt: OrderBy.DESC,
+    };
+    const where: FindOptionsWhere<TodoModel> = {};
+    const take: number = dto.take ?? 20;
+    const skip: number = 0;
+
+    if (dto.orderTarget) {
+      order.createAt = undefined;
+      order[`${dto.orderTarget}`] = dto.orderType ?? OrderBy.DESC;
+    }
+
+    if (dto.search) {
+      for (const key in dto.search) {
+        where[key] = Like(dto.search[key]);
+      }
+    }
+
+    const options: FindManyOptions<TodoModel> = {
+      select: {
+        uuid: true,
+        title: true,
+        todoDate: true,
+        todoTime: true,
+        isExec: true,
+        updateAt: true,
       },
-      take: null,
-      skip: 0,
+      where: null,
+      order,
+      take,
+      skip,
     };
 
     if (dto.lastUid) {
@@ -62,9 +95,12 @@ export class TodoService {
         },
       });
 
-      options.where = {
-        createAt: LessThan(item.createAt),
-      };
+      if (item) {
+        options.where = {
+          createAt: LessThan<Date>(item.createAt),
+          ...where,
+        };
+      }
     }
 
     const [items, count] = await this.repository.findAndCount(options);
@@ -82,11 +118,18 @@ export class TodoService {
    */
   async getTodoDetail(uuid: string, idx: number) {
     const data = await this.repository.findOne({
+      select: [
+        'uuid',
+        'title',
+        'content',
+        'todoDate',
+        'todoTime',
+        'isExec',
+        'updateAt',
+      ],
       where: {
         uuid,
-        member: {
-          idx,
-        },
+        member: { idx },
       },
     });
 
@@ -146,5 +189,7 @@ export class TodoService {
         todoTime: '11:22',
       });
     }
+
+    return ResponseModel.JSON();
   }
 }

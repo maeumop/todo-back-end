@@ -20,7 +20,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { TodoGetListDto } from 'src/dto/todo/todo-paginate.dto';
-import { BaseResponse, ResponseModel } from 'src/model/response.model';
+import { BaseResponse } from 'src/model/response.model';
 import { RequestWithMember } from 'src/type/common';
 import {
   TodoDetailItemModel,
@@ -41,7 +41,6 @@ export class TodoController {
     description: 'To Do 목록 호출',
   })
   @ApiProperty({
-    description: '',
     type: TodoGetListDto,
   })
   @ApiResponse({
@@ -52,8 +51,7 @@ export class TodoController {
     @Query() query: TodoGetListDto,
     @Request() req: RequestWithMember,
   ) {
-    const response = this.todoSvc.getTodoList(query, req.member.idx);
-    return response;
+    return await this.todoSvc.getTodoList(query, req.member.idx);
   }
 
   @Get(':uuid')
@@ -85,8 +83,7 @@ export class TodoController {
     type: TodoPostResponse,
   })
   async postTodo(@Body() body: TodoPostDto, @Request() req: RequestWithMember) {
-    const response = await this.todoSvc.insertTodo(body, req.member.idx);
-    return response;
+    return await this.todoSvc.insertTodo(body, req.member.idx);
   }
 
   @Patch(':uuid')
@@ -106,8 +103,7 @@ export class TodoController {
     @Body() body: TodoPatchDto,
     @Request() req: RequestWithMember,
   ) {
-    const response = await this.todoSvc.updateTodo(uuid, body, req.member.idx);
-    return response;
+    return await this.todoSvc.updateTodo(uuid, body, req.member.idx);
   }
 
   @Delete(':uuid')
@@ -123,14 +119,13 @@ export class TodoController {
     @Param('uuid') uuid: string,
     @Request() req: RequestWithMember,
   ) {
-    const response = await this.todoSvc.deleteTodo(uuid, req.member.idx);
-    return response;
+    return await this.todoSvc.deleteTodo(uuid, req.member.idx);
   }
 
-  @Get('/makeList')
+  @Post('/makeList')
   @PublicApi()
+  @UseInterceptors(ClassSerializerInterceptor)
   async makeList() {
-    await this.todoSvc.makeManyList();
-    return ResponseModel.JSON();
+    return await this.todoSvc.makeManyList();
   }
 }

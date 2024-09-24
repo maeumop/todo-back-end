@@ -4,7 +4,6 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { AuthService } from 'src/api/auth/auth.service';
 import { MemberService } from 'src/api/member/member.service';
@@ -31,7 +30,6 @@ export class BasicTokenGuard implements CanActivate {
   constructor(
     private readonly authSvc: AuthService,
     private readonly memberSvc: MemberService,
-    private readonly config: ConfigService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -65,9 +63,8 @@ export class AccessTokenGuard implements CanActivate {
 
     if (!isPublic) {
       const token = getToken(req.headers, this.authSvc);
-      const { userId } = this.authSvc.verifyToken(token);
-      const member = await this.memberSvc.member().byId(userId).user();
-
+      const { id } = this.authSvc.verifyToken(token);
+      const member = await this.memberSvc.member().byId(id).user();
       req.token = token;
       req.member = member;
     }

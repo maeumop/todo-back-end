@@ -1,4 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
 import { OrderBy, TodoOrder } from 'src/common/enum.constant';
 
 export class TodoListSearchDto {
@@ -27,29 +28,37 @@ export class TodoGetListDto {
   @ApiPropertyOptional({
     description: '목록 마지막 uid',
   })
+  @IsOptional()
+  @IsString()
   lastUid?: string;
 
   @ApiPropertyOptional({
     description: '페이지 당 불러 오는 수량',
     default: 20,
   })
-  pageSize: number = 20;
+  @IsOptional()
+  @IsString()
+  take?: number;
 
   @ApiPropertyOptional({
     type: TodoOrder,
     default: TodoOrder.DATE,
   })
-  orderTarget: TodoOrder = TodoOrder.CREATE;
+  orderTarget?: TodoOrder;
 
   @ApiPropertyOptional({
     type: OrderBy,
     default: OrderBy.DESC,
   })
-  orderBy: OrderBy = OrderBy.DESC;
+  @IsOptional()
+  @IsString()
+  orderType?: OrderBy;
 
   @ApiPropertyOptional({
     description: '페이지 검색 옵션 그룹',
     type: TodoListSearchDto,
   })
+  @IsOptional()
+  @IsString()
   search?: TodoListSearchDto;
 }

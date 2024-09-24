@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { sha512 } from 'js-sha512';
 import { ResponseModel } from 'src/model/response.model';
+import { JwtModel } from 'src/model/auth/auth.response.model';
 
 @Injectable()
 export class AuthService {
@@ -97,11 +98,11 @@ export class AuthService {
    * @param token
    * @returns
    */
-  verifyToken(token: string) {
+  verifyToken(token: string): JwtModel {
     const secret = this.configSvc.get('JWT_SECRET');
 
     try {
-      return this.jwtSvc.verify(token, { secret });
+      return this.jwtSvc.verify<JwtModel>(token, { secret });
     } catch (e) {
       throw new UnauthorizedException(
         '토큰이 만료되었거나, 잘못된 토큰입니다.',
